@@ -8,6 +8,7 @@ from mininet.link import TCLink
 from mininet.util import irange,dumpNodeConnections
 from mininet.log import setLogLevel
 from mininet.node import RemoteController
+from itertools import product
 
 import argparse
 import sys
@@ -19,18 +20,36 @@ class ClosTopo(Topo):
     def __init__(self, fanout, cores, **opts):
         # Initialize topology and default options
         Topo.__init__(self, **opts)
-       
+        
         "Set up Core and Aggregate level, Connection Core - Aggregation level"
-        #WRITE YOUR CODE HERE!
-        pass
+        
+        count = cores
+        lower, upper = 1, count
+        cores = [ self.addSwitch('c%s' % s) for s in irange(lower, upper) ]
+        
+        count *= fanout
+        lower, upper = upper + 1, upper + count
+        aggregates = [ self.addSwitch('a%s' % s) for s in irange(lower, upper) ]
+        
+        for core, aggregate in product(cores, aggregates):
+            self.addLink(core, aggregate)
 
         "Set up Edge level, Connection Aggregation - Edge level "
-        #WRITE YOUR CODE HERE!
-        pass
+        
+        count *= fanout
+        lower, upper = upper + 1, upper + count
+        edges = [ self.addSwitch('e%s' % s) for s in irange(lower, upper) ]
+        
+        for aggregate, edge in product(aggregates, edges):
+            self.addLink(aggregate, edge)
         
         "Set up Host level, Connection Edge - Host level "
-        #WRITE YOUR CODE HERE!
-        pass
+        
+        lower, upper = 1, count * fanout
+        hosts = [ self.addHost('h%s' % h) for h in irange(lower, upper) ]
+        
+        for i in range(16):
+            self.addLink(hosts[i], edges[i / 2])
 	
 
 def setup_clos_topo(fanout=2, cores=1):
