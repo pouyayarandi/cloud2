@@ -24,20 +24,21 @@ class BCubeTopo(Topo):
         serverCount, switchCountPerLevel = n ** (k + 1), n ** k
         
         "Setup hosts"
-        lower, upper = 0, serverCount
+        lower, upper = 0, serverCount - 1
         hosts = [ self.addHost('h%s' % h) for h in irange(lower, upper) ]
-        
+
         "Setup switches"
         switches = []
-        for level in range(k):
-            lower, upper = serverCount + (k * switchCountPerLevel)
-            switches += [ self.addSwitch('s%s' % s) for s in irange(lower, upper) ]
+        for level in range(k + 1):
+            lower = serverCount + (level * switchCountPerLevel)
+	    upper = lower + switchCountPerLevel - 1
+	    switches += [ self.addSwitch('s%s' % s) for s in irange(lower, upper) ]
             
         "Connect each host to the desired switches"
         for i in range(serverCount):
-            for level in range(k):
+            for level in range(k + 1):
                 shift, length = n ** level, n ** (level + 1)
-                lower = k * switchCountPerLevel
+                lower = level * switchCountPerLevel
                 connect = lower + (((i / length) * shift) + (i % shift))
                 
                 self.addLink(hosts[i], switches[connect])
@@ -46,7 +47,7 @@ class BCubeTopo(Topo):
 def setup_bcube_topo(n=4, k=1):
     "Create and test a simple BCube network"
     assert(n>0)
-    assert(k>0)
+    assert(k>=0)
     topo = BCubeTopo(n, k)
     net = Mininet(topo=topo, controller=lambda name: RemoteController('c0', "127.0.0.1"), autoSetMacs=True, link=TCLink)
     net.start()
