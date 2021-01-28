@@ -48,8 +48,8 @@ class ClosTopo(Topo):
         lower, upper = 1, count * fanout
         hosts = [ self.addHost('h%s' % h) for h in irange(lower, upper) ]
         
-        for i in range(16):
-            self.addLink(hosts[i], edges[i / 2])
+        for i in range(upper):
+            self.addLink(hosts[i], edges[i / fanout])
 	
 
 def setup_clos_topo(fanout=2, cores=1):
